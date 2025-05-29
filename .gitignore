@@ -1,13 +1,1 @@
-certbot/*
-!certbot/.gitkeep
-
-n8n/*
-!n8n/.gitkeep
-
-postgres/*
-!postgres/.gitkeep
-
-redis/*
-!redis/.gitkeep
-
 .env
