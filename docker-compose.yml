@@ -1,21 +1,15 @@
-# Volumes configuration
 volumes:
   n8n_data:
   postgres_data:
   redis_data:
   certbot_data:
 
-# Shared configuration for n8n and worker
-x-shared: &shared
+x-shared: &n8n-shared
   restart: always
   image: docker.n8n.io/n8nio/n8n
   environment:
-    - N8N_BASIC_AUTH_ACTIVE=${BASIC_AUTH_ACTIVE}
-    - N8N_BASIC_AUTH_USER=${BASIC_AUTH_USER}
-    - N8N_BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}
     - N8N_HOST=${DOMAIN_NAME}
     - N8N_PORT=5678
-    - WEBHOOK_URL=https://${DOMAIN_NAME}/
     - N8N_ENCRYPTION_KEY=${ENCRYPTION_KEY}
     - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
     - DB_TYPE=postgresdb
@@ -39,6 +33,17 @@ x-shared: &shared
       condition: service_healthy
 
 services:
+  n8n:
+    <<: *n8n-shared
+    ports:
+      - 5678:5678
+
+  n8n-worker:
+    <<: *n8n-shared
+    command: worker
+    depends_on:
+      - n8n
+
   postgres:
     image: postgres:16
     restart: always
@@ -67,17 +72,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  n8n:
-    <<: *shared
-    ports:
-      - 5678:5678
-
-  n8n-worker:
-    <<: *shared
-    command: worker
-    depends_on:
-      - n8n
 
   nginx:
     image: nginx:stable
